@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freddi Fish & The Case of the Missing Snake Sauce!</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard', cursive;
+            overflow: hidden;
+            background: linear-gradient(180deg, #0066aa 0%, #004477 50%, #1a3a52 100%);
+            min-height: 100vh;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Water effect overlay */
+        .water-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(ellipse at 30% 20%, rgba(100, 200, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 60%, rgba(100, 200, 255, 0.08) 0%, transparent 40%);
+            pointer-events: none;
+            z-index: 1;
+            animation: waterShimmer 8s ease-in-out infinite;
+        }
+
+        @keyframes waterShimmer {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        /* Light rays from surface */
+        .light-rays {
+            position: absolute;
+            top: -50px;
+            left: 0;
+            width: 100%;
+            height: 400px;
+            background:
+                linear-gradient(180deg, rgba(255,255,200,0.3) 0%, transparent 100%);
+            clip-path: polygon(10% 0%, 15% 100%, 5% 100%, 0% 0%,
+                               25% 0%, 32% 100%, 22% 100%, 15% 0%,
+                               45% 0%, 50% 100%, 42% 100%, 37% 0%,
+                               60% 0%, 68% 100%, 58% 100%, 50% 0%,
+                               80% 0%, 85% 100%, 77% 100%, 72% 0%,
+                               95% 0%, 100% 100%, 92% 100%, 87% 0%);
+            opacity: 0.4;
+            pointer-events: none;
+            animation: raysSway 12s ease-in-out infinite;
+        }
+
+        @keyframes raysSway {
+            0%, 100% { transform: skewX(-5deg); }
+            50% { transform: skewX(5deg); }
+        }
+
+        /* Sandy ocean floor */
+        .ocean-floor {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 120px;
+            background: linear-gradient(180deg, #d4a855 0%, #c4944a 50%, #a67c3d 100%);
+            border-radius: 100% 100% 0 0 / 30px 30px 0 0;
+        }
+
+        .ocean-floor::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(ellipse 30px 15px at 10% 20%, rgba(0,0,0,0.1) 0%, transparent 100%),
+                radial-gradient(ellipse 40px 20px at 30% 40%, rgba(0,0,0,0.08) 0%, transparent 100%),
+                radial-gradient(ellipse 25px 12px at 50% 25%, rgba(0,0,0,0.1) 0%, transparent 100%),
+                radial-gradient(ellipse 35px 18px at 70% 35%, rgba(0,0,0,0.08) 0%, transparent 100%),
+                radial-gradient(ellipse 30px 15px at 90% 20%, rgba(0,0,0,0.1) 0%, transparent 100%);
+        }
+
+        /* Coral and plant base styles */
+        .coral {
+            position: absolute;
+            bottom: 80px;
+            z-index: 2;
+        }
+
+        .coral-brain {
+            width: 120px;
+            height: 80px;
+            background: radial-gradient(ellipse at 30% 30%, #ff6b9d 0%, #e84a7f 50%, #c73866 100%);
+            border-radius: 60% 60% 50% 50%;
+            box-shadow: inset -10px -10px 20px rgba(0,0,0,0.3), inset 5px 5px 15px rgba(255,255,255,0.2);
+        }
+
+        .coral-brain::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 20px;
+            background:
+                radial-gradient(ellipse 15px 10px at 20% 30%, rgba(0,0,0,0.2) 0%, transparent 100%),
+                radial-gradient(ellipse 12px 8px at 50% 50%, rgba(0,0,0,0.2) 0%, transparent 100%),
+                radial-gradient(ellipse 18px 12px at 75% 35%, rgba(0,0,0,0.2) 0%, transparent 100%),
+                radial-gradient(ellipse 14px 9px at 35% 70%, rgba(0,0,0,0.2) 0%, transparent 100%),
+                radial-gradient(ellipse 16px 11px at 65% 65%, rgba(0,0,0,0.2) 0%, transparent 100%);
+        }
+
+        .coral-tube {
+            display: flex;
+            gap: 5px;
+            align-items: flex-end;
+        }
+
+        .tube {
+            background: linear-gradient(90deg, #ff9933 0%, #ffaa44 50%, #ff8822 100%);
+            border-radius: 50% 50% 0 0;
+            box-shadow: inset -3px 0 8px rgba(0,0,0,0.3);
+        }
+
+        .tube::after {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            height: 8px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 50%;
+        }
+
+        .coral-fan {
+            width: 100px;
+            height: 140px;
+            position: relative;
+        }
+
+        .fan-branch {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 4px;
+            background: linear-gradient(180deg, #9b4dca 0%, #7b2d9a 100%);
+            transform-origin: bottom center;
+            border-radius: 2px;
+        }
+
+        .seaweed {
+            position: absolute;
+            bottom: 80px;
+            width: 30px;
+            z-index: 2;
+        }
+
+        .seaweed-blade {
+            position: absolute;
+            bottom: 0;
+            width: 25px;
+            background: linear-gradient(90deg, #22aa44 0%, #33cc55 50%, #22aa44 100%);
+            border-radius: 50% 50% 0 0;
+            transform-origin: bottom center;
+            animation: seaweedSway 4s ease-in-out infinite;
+        }
+
+        @keyframes seaweedSway {
+            0%, 100% { transform: rotate(-5deg) skewX(-3deg); }
+            50% { transform: rotate(5deg) skewX(3deg); }
+        }
+
+        .seaweed-blade:nth-child(2) { animation-delay: -0.5s; }
+        .seaweed-blade:nth-child(3) { animation-delay: -1s; }
+        .seaweed-blade:nth-child(4) { animation-delay: -1.5s; }
+
+        /* Rocks */
+        .rock {
+            position: absolute;
+            bottom: 70px;
+            background: linear-gradient(135deg, #667788 0%, #556677 50%, #445566 100%);
+            border-radius: 40% 50% 45% 55%;
+            box-shadow: inset -5px -5px 15px rgba(0,0,0,0.4), inset 3px 3px 10px rgba(255,255,255,0.1);
+            z-index: 2;
+        }
+
+        /* Bubbles */
+        .bubble {
+            position: absolute;
+            background: radial-gradient(ellipse at 30% 30%, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.2) 50%, transparent 70%);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            animation: bubbleRise 8s ease-in infinite;
+            z-index: 5;
+        }
+
+        @keyframes bubbleRise {
+            0% { transform: translateY(0) translateX(0); opacity: 0.7; }
+            25% { transform: translateY(-25vh) translateX(10px); }
+            50% { transform: translateY(-50vh) translateX(-5px); opacity: 0.5; }
+            75% { transform: translateY(-75vh) translateX(8px); }
+            100% { transform: translateY(-100vh) translateX(0); opacity: 0; }
+        }
+
+        /* Swimming fish decorations */
+        .deco-fish {
+            position: absolute;
+            z-index: 3;
+            animation: fishSwim 20s linear infinite;
+        }
+
+        .deco-fish.reverse {
+            animation: fishSwimReverse 25s linear infinite;
+        }
+
+        @keyframes fishSwim {
+            0% { transform: translateX(-100px) translateY(0); }
+            25% { transform: translateX(25vw) translateY(-20px); }
+            50% { transform: translateX(50vw) translateY(10px); }
+            75% { transform: translateX(75vw) translateY(-15px); }
+            100% { transform: translateX(calc(100vw + 100px)) translateY(0); }
+        }
+
+        @keyframes fishSwimReverse {
+            0% { transform: translateX(calc(100vw + 100px)) scaleX(-1) translateY(0); }
+            25% { transform: translateX(75vw) scaleX(-1) translateY(15px); }
+            50% { transform: translateX(50vw) scaleX(-1) translateY(-10px); }
+            75% { transform: translateX(25vw) scaleX(-1) translateY(20px); }
+            100% { transform: translateX(-100px) scaleX(-1) translateY(0); }
+        }
+
+        .fish-body {
+            width: 60px;
+            height: 35px;
+            background: linear-gradient(180deg, #ffcc00 0%, #ff9900 100%);
+            border-radius: 50% 40% 40% 50%;
+            position: relative;
+            box-shadow: inset 0 -5px 10px rgba(0,0,0,0.2);
+        }
+
+        .fish-body.purple {
+            background: linear-gradient(180deg, #cc88ff 0%, #9944cc 100%);
+        }
+
+        .fish-body.blue {
+            background: linear-gradient(180deg, #44ccff 0%, #2299cc 100%);
+        }
+
+        .fish-tail {
+            position: absolute;
+            right: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid #ff9900;
+            border-top: 15px solid transparent;
+            border-bottom: 15px solid transparent;
+        }
+
+        .fish-body.purple .fish-tail {
+            border-left-color: #9944cc;
+        }
+
+        .fish-body.blue .fish-tail {
+            border-left-color: #2299cc;
+        }
+
+        .fish-eye {
+            position: absolute;
+            left: 12px;
+            top: 8px;
+            width: 12px;
+            height: 12px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .fish-eye::after {
+            content: '';
+            position: absolute;
+            left: 3px;
+            top: 3px;
+            width: 6px;
+            height: 6px;
+            background: #222;
+            border-radius: 50%;
+        }
+
+        .fish-fin {
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 15px solid #ffaa00;
+        }
+
+        .fish-body.purple .fish-fin {
+            border-bottom-color: #aa55dd;
+        }
+
+        .fish-body.blue .fish-fin {
+            border-bottom-color: #33aadd;
+        }
+
+        /* Steak sauce bottles (hidden items) */
+        .sauce-bottle {
+            position: absolute;
+            width: 25px;
+            height: 55px;
+            cursor: pointer;
+            z-index: 4;
+            transition: transform 0.3s ease, filter 0.3s ease;
+        }
+
+        .sauce-bottle:hover {
+            transform: scale(1.1);
+        }
+
+        .sauce-bottle.found {
+            filter: brightness(1.3) drop-shadow(0 0 10px gold);
+            animation: foundPulse 0.5s ease;
+            pointer-events: none;
+        }
+
+        .sauce-bottle.hint {
+            animation: hintGlow 1s ease-in-out 3;
+        }
+
+        @keyframes foundPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes hintGlow {
+            0%, 100% { filter: drop-shadow(0 0 5px transparent); }
+            50% { filter: drop-shadow(0 0 15px yellow) drop-shadow(0 0 25px orange); }
+        }
+
+        .bottle-cap {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 8px;
+            background: linear-gradient(180deg, #222 0%, #444 100%);
+            border-radius: 2px 2px 0 0;
+        }
+
+        .bottle-neck {
+            position: absolute;
+            top: 7px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 8px;
+            height: 10px;
+            background: linear-gradient(90deg, #3d2914 0%, #5c3d1e 50%, #3d2914 100%);
+        }
+
+        .bottle-body {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 38px;
+            background: linear-gradient(90deg, #2a1a0a 0%, #4a3020 30%, #5c3d1e 50%, #4a3020 70%, #2a1a0a 100%);
+            border-radius: 3px 3px 5px 5px;
+            box-shadow: inset 2px 0 5px rgba(255,255,255,0.1);
+        }
+
+        .bottle-label {
+            position: absolute;
+            top: 22px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 16px;
+            height: 20px;
+            background: #f5e6c8;
+            border: 1px solid #aa8855;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 7px;
+            font-weight: bold;
+            color: #8b0000;
+        }
+
+        .bottle-label::before {
+            content: 'A1';
+            font-family: serif;
+        }
+
+        /* Character (Freddi-style fish) */
+        #character {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 100;
+            display: flex;
+            align-items: flex-end;
+            gap: 15px;
+        }
+
+        .character-fish {
+            width: 100px;
+            height: 70px;
+            position: relative;
+            animation: characterBob 3s ease-in-out infinite;
+        }
+
+        @keyframes characterBob {
+            0%, 100% { transform: translateY(0) rotate(-2deg); }
+            50% { transform: translateY(-10px) rotate(2deg); }
+        }
+
+        .char-body {
+            width: 80px;
+            height: 60px;
+            background: linear-gradient(180deg, #ffaa00 0%, #ff8800 50%, #ee7700 100%);
+            border-radius: 50% 45% 45% 50%;
+            position: absolute;
+            bottom: 5px;
+            left: 10px;
+            box-shadow: inset 0 -10px 20px rgba(0,0,0,0.2), inset 0 5px 15px rgba(255,255,255,0.3);
+        }
+
+        .char-eye {
+            position: absolute;
+            top: 12px;
+            left: 15px;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .char-eye::after {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 8px;
+            width: 10px;
+            height: 10px;
+            background: #222;
+            border-radius: 50%;
+        }
+
+        .char-eye::before {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 12px;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        .char-mouth {
+            position: absolute;
+            top: 32px;
+            left: 8px;
+            width: 15px;
+            height: 8px;
+            border-bottom: 3px solid #cc5500;
+            border-radius: 0 0 50% 50%;
+        }
+
+        .char-fin-top {
+            position: absolute;
+            top: -5px;
+            left: 35px;
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 25px solid #ff9900;
+        }
+
+        .char-fin-side {
+            position: absolute;
+            top: 25px;
+            left: -8px;
+            width: 20px;
+            height: 15px;
+            background: #ff9900;
+            border-radius: 50% 0 50% 50%;
+            transform: rotate(-30deg);
+        }
+
+        .char-tail {
+            position: absolute;
+            right: -20px;
+            top: 15px;
+            width: 0;
+            height: 0;
+            border-left: 30px solid #ff8800;
+            border-top: 20px solid transparent;
+            border-bottom: 20px solid transparent;
+        }
+
+        /* Speech bubble */
+        .speech-bubble {
+            background: white;
+            border-radius: 20px;
+            padding: 15px 20px;
+            max-width: 280px;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            font-size: 16px;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .speech-bubble::before {
+            content: '';
+            position: absolute;
+            left: -15px;
+            bottom: 20px;
+            width: 0;
+            height: 0;
+            border-right: 20px solid white;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+        }
+
+        /* UI Elements */
+        #ui-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 50, 80, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            color: white;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            border: 3px solid #ffaa00;
+        }
+
+        #ui-panel h2 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #ffcc00;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        #bottles-found {
+            font-size: 28px;
+            font-weight: bold;
+            color: #ffdd44;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        #hint-btn {
+            margin-top: 15px;
+            padding: 12px 25px;
+            font-size: 16px;
+            font-family: inherit;
+            background: linear-gradient(180deg, #44cc88 0%, #33aa66 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        #hint-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+            background: linear-gradient(180deg, #55dd99 0%, #44bb77 100%);
+        }
+
+        #hint-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Title */
+        #game-title {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 100;
+        }
+
+        #game-title h1 {
+            font-size: 32px;
+            color: #ffdd44;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5), -1px -1px 0 #ff8800;
+            margin-bottom: 5px;
+        }
+
+        #game-title p {
+            font-size: 16px;
+            color: #aaddff;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+        }
+
+        /* Victory screen */
+        #victory-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 30, 60, 0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            flex-direction: column;
+        }
+
+        #victory-screen.show {
+            display: flex;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .victory-content {
+            text-align: center;
+            color: white;
+        }
+
+        .victory-content h1 {
+            font-size: 48px;
+            color: #ffdd44;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+            margin-bottom: 20px;
+            animation: victoryBounce 0.5s ease infinite alternate;
+        }
+
+        @keyframes victoryBounce {
+            from { transform: scale(1); }
+            to { transform: scale(1.05); }
+        }
+
+        .victory-content p {
+            font-size: 24px;
+            color: #aaddff;
+            margin-bottom: 30px;
+        }
+
+        #play-again-btn {
+            padding: 20px 50px;
+            font-size: 24px;
+            font-family: inherit;
+            background: linear-gradient(180deg, #ff8844 0%, #ee6622 100%);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+
+        #play-again-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+        }
+
+        /* Confetti */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            z-index: 201;
+            animation: confettiFall 4s linear infinite;
+        }
+
+        @keyframes confettiFall {
+            0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* Treasure chest decoration */
+        .treasure-chest {
+            position: absolute;
+            bottom: 85px;
+            width: 80px;
+            height: 60px;
+            z-index: 3;
+        }
+
+        .chest-base {
+            position: absolute;
+            bottom: 0;
+            width: 80px;
+            height: 40px;
+            background: linear-gradient(180deg, #8b4513 0%, #654321 100%);
+            border-radius: 5px;
+            box-shadow: inset 0 -10px 20px rgba(0,0,0,0.4);
+        }
+
+        .chest-lid {
+            position: absolute;
+            bottom: 35px;
+            width: 80px;
+            height: 30px;
+            background: linear-gradient(180deg, #a0522d 0%, #8b4513 100%);
+            border-radius: 10px 10px 0 0;
+            transform-origin: bottom;
+            transform: rotateX(-20deg);
+        }
+
+        .chest-lock {
+            position: absolute;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 15px;
+            height: 20px;
+            background: #ffd700;
+            border-radius: 3px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        /* Anemone */
+        .anemone {
+            position: absolute;
+            bottom: 80px;
+            z-index: 2;
+        }
+
+        .anemone-tentacle {
+            position: absolute;
+            bottom: 0;
+            width: 8px;
+            height: 60px;
+            background: linear-gradient(180deg, #ff69b4 0%, #ff1493 100%);
+            border-radius: 50% 50% 0 0;
+            transform-origin: bottom center;
+            animation: tentacleSway 3s ease-in-out infinite;
+        }
+
+        @keyframes tentacleSway {
+            0%, 100% { transform: rotate(-10deg); }
+            50% { transform: rotate(10deg); }
+        }
+
+        /* Starfish */
+        .starfish {
+            position: absolute;
+            z-index: 3;
+        }
+
+        .star-arm {
+            position: absolute;
+            width: 15px;
+            height: 35px;
+            background: linear-gradient(180deg, #ff6347 0%, #dc143c 100%);
+            border-radius: 50% 50% 30% 30%;
+            transform-origin: bottom center;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div class="light-rays"></div>
+        <div class="water-overlay"></div>
+        <div class="ocean-floor"></div>
+
+        <!-- Scene elements will be generated by JavaScript -->
+        <div id="scene-elements"></div>
+        <div id="bottles-container"></div>
+
+        <!-- Decorative fish -->
+        <div class="deco-fish" style="top: 15%;">
+            <div class="fish-body">
+                <div class="fish-tail"></div>
+                <div class="fish-eye"></div>
+                <div class="fish-fin"></div>
+            </div>
+        </div>
+        <div class="deco-fish reverse" style="top: 35%;">
+            <div class="fish-body purple">
+                <div class="fish-tail"></div>
+                <div class="fish-eye"></div>
+                <div class="fish-fin"></div>
+            </div>
+        </div>
+        <div class="deco-fish" style="top: 55%; animation-delay: -10s;">
+            <div class="fish-body blue">
+                <div class="fish-tail"></div>
+                <div class="fish-eye"></div>
+                <div class="fish-fin"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-title">
+        <h1>The Case of the Missing Steak Sauce!</h1>
+        <p>Find all 10 hidden bottles of A1 Sauce!</p>
+    </div>
+
+    <div id="ui-panel">
+        <h2>Bottles Found</h2>
+        <div id="bottles-found">0 / 10</div>
+        <button id="hint-btn" onclick="giveHint()">Need a Hint?</button>
+    </div>
+
+    <div id="character">
+        <div class="character-fish">
+            <div class="char-body">
+                <div class="char-eye"></div>
+                <div class="char-mouth"></div>
+            </div>
+            <div class="char-fin-top"></div>
+            <div class="char-fin-side"></div>
+            <div class="char-tail"></div>
+        </div>
+        <div class="speech-bubble" id="speech-bubble">
+            Welcome, detective! Help me find 10 bottles of steak sauce hidden in this reef! Click on them when you spot one!
+        </div>
+    </div>
+
+    <div id="victory-screen">
+        <div class="victory-content">
+            <h1>You Did It!</h1>
+            <p>You found all 10 bottles of steak sauce!</p>
+            <p>Uncle Dan will be so happy!</p>
+            <button id="play-again-btn" onclick="resetGame()">Play Again?</button>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        let bottlesFound = 0;
+        const totalBottles = 10;
+        let bottles = [];
+        let hintsUsed = 0;
+
+        // Encouragement messages
+        const encouragements = [
+            "Great eye! Keep looking!",
+            "You're doing amazing!",
+            "Wow, you found another one!",
+            "You're a natural detective!",
+            "Fantastic! Keep going!",
+            "Uncle Dan would be proud!",
+            "You're getting warmer!",
+            "Spectacular find!",
+            "You've got sharp eyes!",
+            "Almost there, keep searching!"
+        ];
+
+        const hintMessages = [
+            "Look carefully near the coral...",
+            "Check around the seaweed!",
+            "Maybe behind a rock?",
+            "I see one sparkling over there!"
+        ];
+
+        // Bottle positions (strategically placed to be partially hidden)
+        const bottlePositions = [
+            { x: 8, y: 55, zIndex: 3 },    // Behind tall seaweed
+            { x: 22, y: 68, zIndex: 2 },   // Near brain coral
+            { x: 35, y: 45, zIndex: 3 },   // Behind fan coral
+            { x: 48, y: 72, zIndex: 2 },   // In rocks
+            { x: 62, y: 50, zIndex: 3 },   // Behind tube coral
+            { x: 75, y: 65, zIndex: 2 },   // Near anemone
+            { x: 85, y: 48, zIndex: 3 },   // Behind seaweed
+            { x: 15, y: 38, zIndex: 4 },   // Upper area, behind coral
+            { x: 55, y: 35, zIndex: 4 },   // Mid-upper, partially visible
+            { x: 90, y: 70, zIndex: 2 }    // Far right, near floor
+        ];
+
+        function init() {
+            generateScene();
+            generateBottles();
+            generateBubbles();
+        }
+
+        function generateScene() {
+            const scene = document.getElementById('scene-elements');
+            let sceneHTML = '';
+
+            // Brain corals
+            sceneHTML += `
+                <div class="coral" style="left: 5%; bottom: 85px;">
+                    <div class="coral-brain" style="width: 100px; height: 70px;"></div>
+                </div>
+                <div class="coral" style="left: 45%; bottom: 90px;">
+                    <div class="coral-brain" style="width: 140px; height: 90px; background: radial-gradient(ellipse at 30% 30%, #ff9966 0%, #ff6633 50%, #cc4422 100%);"></div>
+                </div>
+                <div class="coral" style="left: 80%; bottom: 85px;">
+                    <div class="coral-brain" style="width: 90px; height: 60px; background: radial-gradient(ellipse at 30% 30%, #ff88aa 0%, #ee6699 50%, #cc4477 100%);"></div>
+                </div>
+            `;
+
+            // Tube corals
+            sceneHTML += `
+                <div class="coral coral-tube" style="left: 20%;">
+                    <div class="tube" style="width: 20px; height: 80px; position: relative;"></div>
+                    <div class="tube" style="width: 25px; height: 100px; position: relative;"></div>
+                    <div class="tube" style="width: 18px; height: 70px; position: relative;"></div>
+                </div>
+                <div class="coral coral-tube" style="left: 60%;">
+                    <div class="tube" style="width: 22px; height: 90px; position: relative; background: linear-gradient(90deg, #cc66ff 0%, #dd88ff 50%, #bb55ee 100%);"></div>
+                    <div class="tube" style="width: 28px; height: 110px; position: relative; background: linear-gradient(90deg, #cc66ff 0%, #dd88ff 50%, #bb55ee 100%);"></div>
+                    <div class="tube" style="width: 20px; height: 75px; position: relative; background: linear-gradient(90deg, #cc66ff 0%, #dd88ff 50%, #bb55ee 100%);"></div>
+                </div>
+            `;
+
+            // Fan corals
+            for (let i = 0; i < 3; i++) {
+                const left = 30 + i * 25;
+                const hue = 260 + i * 30;
+                sceneHTML += `<div class="coral coral-fan" style="left: ${left}%;">`;
+                for (let j = -5; j <= 5; j++) {
+                    const angle = j * 8;
+                    const height = 80 + Math.random() * 40;
+                    sceneHTML += `<div class="fan-branch" style="height: ${height}px; transform: rotate(${angle}deg); background: linear-gradient(180deg, hsl(${hue}, 70%, 60%) 0%, hsl(${hue}, 70%, 40%) 100%);"></div>`;
+                }
+                sceneHTML += `</div>`;
+            }
+
+            // Seaweed patches
+            const seaweedPositions = [5, 18, 38, 52, 70, 88];
+            seaweedPositions.forEach((pos, idx) => {
+                sceneHTML += `<div class="seaweed" style="left: ${pos}%;">`;
+                for (let i = 0; i < 4; i++) {
+                    const height = 80 + Math.random() * 60;
+                    const leftOffset = i * 8 - 12;
+                    const delay = -i * 0.3;
+                    sceneHTML += `<div class="seaweed-blade" style="height: ${height}px; left: ${leftOffset}px; animation-delay: ${delay}s;"></div>`;
+                }
+                sceneHTML += `</div>`;
+            });
+
+            // Rocks
+            sceneHTML += `
+                <div class="rock" style="left: 12%; width: 60px; height: 45px;"></div>
+                <div class="rock" style="left: 40%; width: 80px; height: 55px;"></div>
+                <div class="rock" style="left: 65%; width: 50px; height: 35px;"></div>
+                <div class="rock" style="left: 92%; width: 70px; height: 50px;"></div>
+            `;
+
+            // Anemones
+            sceneHTML += `<div class="anemone" style="left: 72%;">`;
+            for (let i = 0; i < 8; i++) {
+                const angle = (i - 4) * 12;
+                const delay = -i * 0.2;
+                sceneHTML += `<div class="anemone-tentacle" style="left: ${i * 10}px; transform: rotate(${angle}deg); animation-delay: ${delay}s;"></div>`;
+            }
+            sceneHTML += `</div>`;
+
+            // Treasure chest
+            sceneHTML += `
+                <div class="treasure-chest" style="left: 25%;">
+                    <div class="chest-base"></div>
+                    <div class="chest-lid"></div>
+                    <div class="chest-lock"></div>
+                </div>
+            `;
+
+            // Starfish
+            sceneHTML += `
+                <div class="starfish" style="left: 55%; bottom: 95px;">
+                    <div class="star-arm" style="transform: rotate(0deg) translateY(-10px);"></div>
+                    <div class="star-arm" style="transform: rotate(72deg) translateY(-10px);"></div>
+                    <div class="star-arm" style="transform: rotate(144deg) translateY(-10px);"></div>
+                    <div class="star-arm" style="transform: rotate(216deg) translateY(-10px);"></div>
+                    <div class="star-arm" style="transform: rotate(288deg) translateY(-10px);"></div>
+                </div>
+            `;
+
+            scene.innerHTML = sceneHTML;
+        }
+
+        function generateBottles() {
+            const container = document.getElementById('bottles-container');
+            let bottlesHTML = '';
+
+            bottlePositions.forEach((pos, index) => {
+                const rotation = -10 + Math.random() * 20;
+                bottlesHTML += `
+                    <div class="sauce-bottle" id="bottle-${index}"
+                         style="left: ${pos.x}%; bottom: ${pos.y}%; z-index: ${pos.zIndex}; transform: rotate(${rotation}deg);"
+                         onclick="findBottle(${index})">
+                        <div class="bottle-cap"></div>
+                        <div class="bottle-neck"></div>
+                        <div class="bottle-body">
+                            <div class="bottle-label"></div>
+                        </div>
+                    </div>
+                `;
+                bottles.push({ found: false, element: null });
+            });
+
+            container.innerHTML = bottlesHTML;
+
+            // Store element references
+            bottles.forEach((bottle, index) => {
+                bottle.element = document.getElementById(`bottle-${index}`);
+            });
+        }
+
+        function generateBubbles() {
+            const container = document.getElementById('game-container');
+
+            setInterval(() => {
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                const size = 5 + Math.random() * 15;
+                bubble.style.width = size + 'px';
+                bubble.style.height = size + 'px';
+                bubble.style.left = Math.random() * 100 + '%';
+                bubble.style.bottom = '100px';
+                bubble.style.animationDuration = (6 + Math.random() * 6) + 's';
+                container.appendChild(bubble);
+
+                setTimeout(() => {
+                    bubble.remove();
+                }, 12000);
+            }, 800);
+        }
+
+        function findBottle(index) {
+            if (bottles[index].found) return;
+
+            bottles[index].found = true;
+            bottles[index].element.classList.add('found');
+            bottlesFound++;
+
+            document.getElementById('bottles-found').textContent = `${bottlesFound} / ${totalBottles}`;
+
+            // Show encouragement
+            const speech = document.getElementById('speech-bubble');
+            if (bottlesFound < totalBottles) {
+                speech.textContent = encouragements[bottlesFound - 1];
+            }
+
+            // Check for victory
+            if (bottlesFound === totalBottles) {
+                setTimeout(showVictory, 1000);
+            }
+        }
+
+        function giveHint() {
+            const unfoundBottles = bottles.filter(b => !b.found);
+            if (unfoundBottles.length === 0) return;
+
+            // Pick a random unfound bottle
+            const randomBottle = unfoundBottles[Math.floor(Math.random() * unfoundBottles.length)];
+            randomBottle.element.classList.add('hint');
+
+            // Update speech
+            const speech = document.getElementById('speech-bubble');
+            speech.textContent = hintMessages[hintsUsed % hintMessages.length];
+            hintsUsed++;
+
+            // Remove hint animation after it plays
+            setTimeout(() => {
+                randomBottle.element.classList.remove('hint');
+            }, 3000);
+
+            // Disable button briefly
+            const btn = document.getElementById('hint-btn');
+            btn.disabled = true;
+            setTimeout(() => {
+                btn.disabled = false;
+            }, 4000);
+        }
+
+        function showVictory() {
+            document.getElementById('victory-screen').classList.add('show');
+
+            // Show final message
+            const speech = document.getElementById('speech-bubble');
+            speech.textContent = "Hooray! You found all the steak sauce! Uncle Dan's BBQ is saved!";
+
+            // Generate confetti
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    createConfetti();
+                }, i * 100);
+            }
+        }
+
+        function createConfetti() {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 80%, 60%)`;
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            const size = 8 + Math.random() * 8;
+            confetti.style.width = size + 'px';
+            confetti.style.height = size + 'px';
+            confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+            document.body.appendChild(confetti);
+
+            setTimeout(() => {
+                confetti.remove();
+            }, 6000);
+        }
+
+        function resetGame() {
+            // Reset game state
+            bottlesFound = 0;
+            hintsUsed = 0;
+            bottles = [];
+
+            // Reset UI
+            document.getElementById('bottles-found').textContent = '0 / 10';
+            document.getElementById('victory-screen').classList.remove('show');
+            document.getElementById('speech-bubble').textContent = "Welcome back, detective! Let's find those bottles again!";
+
+            // Regenerate bottles
+            document.getElementById('bottles-container').innerHTML = '';
+            generateBottles();
+        }
+
+        // Initialize game
+        window.onload = init;
+    </script>
+</body>
+</html>
